@@ -64,7 +64,7 @@
                 {% for interval in activityData.intervals %}
                 {% set bar_height = (interval/activityData.max_interval_distance * 45) if (interval > 0) else 2 %}
                     <g class="bar-container" transform="translate({{ loop.index0 * 12.5 }}, 0)">
-                        <rect class="bar {{ loop.index0 | getIntervalClass }}" y="{{ 50 - bar_height }}" width="6.6" height="{{ bar_height }}"></rect>
+                        <rect class="bar {{ loop.index0 | getIntervalClass }} {{ loop.index0 | getBarHighlightClass(activityData.intervals) }}" y="{{ 50 - bar_height }}" width="6.6" height="{{ bar_height }}"></rect>
                     </g>
                     <g class="label-container" transform="translate({{ loop.index0 * 12.5 }}, 63)">
                         <text class="label {{ loop.index0 | getIntervalClass }}" x="0" y="0">{{ loop.index0 | getLabel }}</text>
