@@ -54,7 +54,7 @@ El mòdul mostra informació d'activitats en dos modes:
 
    ```bash
    cd ~/MagicMirror/modules
-   git clone https://github.com/el-teu-usuari/MMM-Strava.git
+   git clone https://github.com/doobmarley/MMM-Strava.git
    cd ~/MagicMirror/modules/MMM-Strava
    npm install --production
    ```
