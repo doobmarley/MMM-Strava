@@ -250,7 +250,8 @@ module.exports = NodeHelper.create({
 				moment.locale(moduleConfig.locale);
 				const afterPeriodMap = {
 					all: moment().year(moduleConfig.firstYear).month(0).date(1).hours(0).minutes(0).seconds(0).milliseconds(0).unix(),
-					ytd: moment().startOf("year").unix(),
+					// NOU: últims 12 mesos en lloc de des de l'inici de l'any
+					ytd: moment().subtract(11, "months").startOf("month").unix(),
 					recent: moment().startOf("week").unix()
 				};
 				var after = afterPeriodMap[moduleConfig.period];
@@ -368,9 +369,12 @@ module.exports = NodeHelper.create({
 		var activitySummary = Object.create(null);
 		var activityName;
 		// Initialise activity summary
+		// NOU: per ytd, construïm els últims 12 mesos en ordre rotatiu (mes actual = últim)
+		const currentMonth = moment().month(); // 0-11
+		const rollingMonths = [...Array(12).keys()].map((i) => (currentMonth + 1 + i) % 12);
 		const periodIntervalMap = {
 			all: [...Array(moment().year() - moduleConfig.firstYear + 1).keys()].map((i) => i + moduleConfig.firstYear),
-			ytd: moment.monthsShort(),
+			ytd: rollingMonths, // array de 12 índexs de mes, en ordre rotatiu
 			recent: moment.weekdaysShort()
 		};
 		var periodIntervals = periodIntervalMap[moduleConfig.period];
@@ -404,16 +408,28 @@ module.exports = NodeHelper.create({
 				activityTypeSummary.total_elapsed_time += activityList[i].elapsed_time;
 				activityTypeSummary.total_achievement_count += activityList[i].achievement_count;
 				const activityDate = moment(activityList[i].start_date_local);
-				const intervalIndexMap = {
-					all: activityDate.year() - moduleConfig.firstYear,
-					ytd: activityDate.month(),
-					recent: activityDate.weekday()
-				};
-				const intervalIndex = intervalIndexMap[moduleConfig.period];
-				activityTypeSummary.intervals[intervalIndex] += distance;
-				// Update max interval distance
-				if (activityTypeSummary.intervals[intervalIndex] > activityTypeSummary.max_interval_distance) {
-					activityTypeSummary.max_interval_distance = activityTypeSummary.intervals[intervalIndex];
+				let intervalIndex;
+				if (moduleConfig.period === "ytd") {
+					// Calcula quants mesos enrere és l'activitat respecte al mes actual
+					const monthsAgo = moment().startOf("month").diff(activityDate.startOf("month"), "months");
+					if (monthsAgo >= 0 && monthsAgo <= 11) {
+						intervalIndex = 11 - monthsAgo;
+					} else {
+						intervalIndex = -1;
+					}
+				} else {
+					const intervalIndexMap = {
+						all: activityDate.year() - moduleConfig.firstYear,
+						recent: activityDate.weekday()
+					};
+					intervalIndex = intervalIndexMap[moduleConfig.period];
+				}
+				if (intervalIndex >= 0) {
+					activityTypeSummary.intervals[intervalIndex] += distance;
+					// Update max interval distance
+					if (activityTypeSummary.intervals[intervalIndex] > activityTypeSummary.max_interval_distance) {
+						activityTypeSummary.max_interval_distance = activityTypeSummary.intervals[intervalIndex];
+					}
 				}
 			}
 		}
