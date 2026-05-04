@@ -209,6 +209,8 @@ Module.register("MMM-Strava", {
 		env.addFilter("roundValue", this.roundValue.bind(this));
 		env.addFilter("getRadialLabelTransform", this.getRadialLabelTransform.bind(this));
 		env.addFilter("getRadialDataPath", this.getRadialDataPath.bind(this));
+		// NOU: filtre per destacar la barra màxima i mínima entre els intervals passats
+		env.addFilter("getBarHighlightClass", this.getBarHighlightClass.bind(this));
 	},
 	/**
 	 * @function getIntervalClass
@@ -218,7 +220,8 @@ Module.register("MMM-Strava", {
 		moment.locale(this.config.locale);
 		const currentIntervalMap = {
 			all: moment().year() - this.config.firstYear,
-			ytd: moment().month(),
+			// NOU: en mode ytd rotatiu, el mes actual sempre és l'últim (índex 11)
+			ytd: 11,
 			recent: moment().weekday()
 		};
 		var currentInterval = currentIntervalMap[this.config.period];
@@ -230,11 +233,49 @@ Module.register("MMM-Strava", {
 		}
 		return className;
 	},
+	/**
+	 * @function getBarHighlightClass
+	 * @description Returns "bar-best" for the interval with the highest distance,
+	 *              "bar-worst" for the lowest (both > 0), among past intervals only.
+	 *              Current and future intervals are excluded.
+	 * @param {number} index      - The index of the current interval
+	 * @param {Array}  intervals  - The full array of interval distance values
+	 */
+	getBarHighlightClass: function (index, intervals) {
+		moment.locale(this.config.locale);
+		const currentIntervalMap = {
+			all: moment().year() - this.config.firstYear,
+			// NOU: en mode ytd rotatiu, el mes actual sempre és l'últim (índex 11)
+			ytd: 11,
+			recent: moment().weekday()
+		};
+		var currentInterval = currentIntervalMap[this.config.period];
+
+		// Només intervals estrictament passats (excloent l'actual i futurs) amb valor > 0
+		var pastValues = intervals.map(function (val, i) {
+			return i < currentInterval && val > 0 ? val : null;
+		});
+		var validValues = pastValues.filter(function (v) { return v !== null; });
+		if (validValues.length === 0) return "";
+
+		var maxVal = Math.max.apply(null, validValues);
+		var minVal = Math.min.apply(null, validValues);
+
+		// Aplicar classe només a intervals passats amb valor > 0
+		if (index < currentInterval && intervals[index] > 0) {
+			if (intervals[index] === maxVal) return "bar-best";
+			if (intervals[index] === minVal) return "bar-worst";
+		}
+		return "";
+	},
 	getLabel: function (interval) {
 		moment.locale(this.config.locale);
+		// NOU: per ytd rotatiu, calculem quin mes correspon a cada posició
+		const currentMonth = moment().month(); // 0-11
+		const rollingMonthIndex = (currentMonth + 1 + interval) % 12;
 		const intervalDateMap = {
 			all: moment().year(this.config.firstYear).add(interval, "years").format("YY"),
-			ytd: moment().startOf("year").add(interval, "months").format("MMM").slice(0, 1).toUpperCase(),
+			ytd: moment().month(rollingMonthIndex).format("MMM").slice(0, 1).toUpperCase(),
 			recent: moment().startOf("week").add(interval, "days").format("dd").slice(0, 1).toUpperCase()
 		};
 		return intervalDateMap[this.config.period];
