@@ -37,6 +37,7 @@ En canviar de mes, el gràfic es desplaça automàticament per mostrar sempre la
 ## Exemple
 
 ![Chart mode screenshot](.github/example-chart.gif)
+![Chart mode screenshot](.github/Chart_strava_colors.png)
 
 El mòdul mostra informació d'activitats en dos modes:
 
