@@ -1,66 +1,71 @@
-# MagicMirror Module: MMM-Strava
+# MagicMirror Module: MMM-Strava (modificat)
 
-A MagicMirror Module for displaying your Strava data.
+Fork del mòdul original [MMM-Strava](https://github.com/ianperrin/MMM-Strava) d'ianperrin per a [MagicMirror²](https://MagicMirror.builders), amb millores visuals al mode `chart`.
 
 [![Platform](https://img.shields.io/badge/platform-MagicMirror-informational)](https://MagicMirror.builders)
 [![License](https://img.shields.io/badge/license-MIT-informational)](https://raw.githubusercontent.com/ianperrin/MMM-Strava/master/LICENSE)
-![Test Status](https://github.com/ianperrin/MMM-Strava/actions/workflows/node.js.yml/badge.svg)
-[![Code Climate](https://codeclimate.com/github/ianperrin/MMM-Strava/badges/gpa.svg)](https://codeclimate.com/github/ianperrin/MMM-Strava)
-[![Known Vulnerabilities](https://snyk.io/test/github/ianperrin/MMM-Strava/badge.svg)](https://snyk.io/test/github/ianperrin/MMM-Strava)
 
-## Example
+---
 
-![Table mode screenshot](.github/example-table.gif) ![Chart mode screenshot](.github/example-chart.gif)
+## Novetats respecte a la versió original
 
-### The module displays activity information in one of two modes
+### 1. Colors dinàmics al gràfic de barres
 
-- `table` mode, which displays a table showing the number of activities, the total distance and (for recent `period` only) the number of achievements.
-- `chart` mode, which displays the total distance, moving time and elevation gain alongside a chart showing the total distance grouped by
-  - day (for `recent` period),
-  - month (for `ytd` period),
-  - year (for `all` period).
+En mode `chart` amb `chartType: "bar"`, el gràfic destaca automàticament:
 
-### In addition you can configure the following options
+- 🟢 **Verd fosc** — la barra amb més distància del període
+- 🔴 **Vermell** — la barra amb menys distància del període
 
-- Which `activities` (and the order activities) should be displayed.
-- Which `stats` should be displayed.
-  - The number of activities (`count`).
-  - The total distance (`distance`).
-  - The total elevation gain (`elevation`).
-  - The total moving time for the period. (`moving_time`).
-  - The total elapsed time for the period. (`elapsed_time`).
-  - The total number of achievements (`achievements`) - in `table` mode, only available for `recent` period).
-- Which `period` to display stats for your activities:
-  - "recent" - last 4 weeks in `table` mode or current week in `chart` mode.
-  - "ytd" - current year to date.
-  - "all" - all time.
-- Which `chartType` should be used in `chart` mode:
-  - "bar" - a simple bar chart.
-  - "radial" - a radial histogram ![Beta](https://img.shields.io/badge/-BETA-red).
-- The `firstYear` to group activities by in `chart` mode when the `period` is "all".
-- Whether the module should `auto_rotate` through the different periods, and the `updateInterval` between rotations. (only applicable in `table` mode).
-- The `units` (miles/feet or kilometres/metres) used to display the total distance and elevation gain statistics.
-- The `locale` used for determining the date (day or month) labels in `chart` mode and number format in both modes.
-- The number of decimal `digits` displayed for the total distance and elevation gain statistics.
+Els colors s'apliquen únicament sobre els intervals **passats**, excloent el mes/dia actual i els futurs.
 
-## Installation
+### 2. Gràfic anual amb els últims 12 mesos
 
-1. Stop your MagicMirror and clone the repository into the modules folder
+En mode `chart` amb `period: "ytd"`, el gràfic mostra sempre els **últims 12 mesos complets** en ordre cronològic, amb el mes actual sempre a l'última posició a la dreta.
+
+Per exemple, amb **maig de 2026** com a mes actual:
+
+```
+J  J  A  S  O  N  D  G  F  M  A  M
+↑                                  ↑
+juny 2025                  maig 2026 (actual)
+```
+
+En canviar de mes, el gràfic es desplaça automàticament per mostrar sempre la finestra dels últims 12 mesos.
+
+---
+
+## Exemple
+
+![Chart mode screenshot](.github/example-chart.gif)
+
+El mòdul mostra informació d'activitats en dos modes:
+
+- **Mode `table`**: mostra una taula amb el nombre d'activitats, la distància total i (per al període `recent`) el nombre d'assoliments.
+- **Mode `chart`**: mostra la distància total, el temps en moviment i el desnivell, juntament amb un gràfic de barres que agrupa la distància per:
+  - dia (per al període `recent`)
+  - mes — últims 12 mesos (per al període `ytd`) ⭐ **millorat**
+  - any (per al període `all`)
+
+---
+
+## Instal·lació
+
+1. Atura el MagicMirror i clona el repositori a la carpeta de mòduls:
 
    ```bash
    cd ~/MagicMirror/modules
-   git clone https://github.com/ianperrin/MMM-Strava.git
+   git clone https://github.com/el-teu-usuari/MMM-Strava.git
    cd ~/MagicMirror/modules/MMM-Strava
    npm install --production
    ```
 
-2. Create a Strava API Application and note the `client_id` and `client_secret`
+2. Crea una aplicació a l'API de Strava i anota el `client_id` i el `client_secret`:
 
-   - Browse to your [My API Application](https://www.strava.com/settings/api) page and log in to Strava if prompted.
-   - Make sure the callback domain matches the IP address (or URL) used to access the MagicMirror.
-   - Make a note of the `client_id` and `client_secret`
+   - Ves a [My API Application](https://www.strava.com/settings/api) i inicia sessió a Strava.
+   - Assegura't que el domini de callback coincideix amb la IP o URL del MagicMirror.
+   - Anota el `client_id` i el `client_secret`.
 
-3. Add the module to the config file (`~/MagicMirror/config/config.js`) for your mirror.
+3. Afegeix el mòdul al fitxer de configuració (`~/MagicMirror/config/config.js`):
 
    ```javascript
    modules: [
@@ -68,65 +73,69 @@ A MagicMirror Module for displaying your Strava data.
        module: "MMM-Strava",
        position: "top_right",
        config: {
-         client_id: "your_strava_client_id",
-         client_secret: "your_strava_api_client_secret"
+         client_id: "el_teu_strava_client_id",
+         client_secret: "el_teu_strava_client_secret",
+         mode: "chart",
+         period: "ytd"
        }
      }
    ];
    ```
 
-   The full list of config options can be found in the [configuration options](#configuration-options) table.
-
-4. Restart the MagicMirror
+4. Reinicia el MagicMirror:
 
    ```bash
-   pm2 restart mm
+   cd ~/MagicMirror && npm start
    ```
 
-5. Authenticate the module to allow access to the Strava API.
+5. Autentica el mòdul per permetre l'accés a l'API de Strava:
 
-   - Browse to the Strava authentication page: [http://localhost:8080/MMM-Strava/auth/](http://localhost:8080/MMM-Strava/auth/) - _the exact URL may vary depending on your configuration._
-   - Select the module you wish to authenticate (e.g. `module_4_MMM-Strava`) and click/tap _Authorise_ -_The number of the modules will vary depending on your configuration._
-   - On the Strava Authorisation page, select the level of access you wish to give to the Magic Mirror, and click/tap _Authorize_ - _the module requires at least `View data about your public profile` and `View data about your activities` but it's up to you whether you want to allow access to `private activities`._
-   - Once the successful authorisation message appears, restart your Magic Mirror.
+   - Ves a [http://localhost:8080/MMM-Strava/auth/](http://localhost:8080/MMM-Strava/auth/)
+   - Selecciona el mòdul i fes clic a *Authorise*.
+   - A la pàgina d'autorització de Strava, selecciona el nivell d'accés i fes clic a *Authorize*.
+   - Un cop aparegui el missatge d'èxit, reinicia el MagicMirror.
 
-## Updating the module
+---
 
-To update the module to the latest version,
+## Opcions de configuració
 
-1. Pull the changes from this repository into the MMM-Strava folder:
+| **Opció** | **Per defecte** | **Descripció** | **Valors possibles** |
+| --- | --- | --- | --- |
+| `client_id` | | *Obligatori* — L'ID de client de la teva aplicació Strava. | |
+| `client_secret` | | *Obligatori* — El secret de client de la teva aplicació Strava. | |
+| `mode` | `table` | *Opcional* — Mode de visualització. | `"table"`, `"chart"` |
+| `chartType` | `bar` | *Opcional* — Tipus de gràfic en mode `chart`. | `"bar"`, `"radial"` |
+| `activities` | `["ride", "run", "swim"]` | *Opcional* — Activitats a mostrar i el seu ordre. | `"ride"`, `"run"`, `"swim"`, `"hike"`, `"walk"`, `"virtualride"`, i moltes més |
+| `period` | `recent` | *Opcional* — Període de les estadístiques. | `"recent"` = setmana actual, `"ytd"` = últims 12 mesos ⭐, `"all"` = tot el temps |
+| `stats` | `["count", "distance", "achievements"]` en `table` / `["distance", "moving_time", "elevation"]` en `chart` | *Opcional* — Estadístiques a mostrar. | `"count"`, `"distance"`, `"elevation"`, `"moving_time"`, `"elapsed_time"`, `"achievements"` |
+| `auto_rotate` | `false` | *Opcional* — Rotació automàtica entre períodes (només mode `table`). | `true`, `false` |
+| `units` | `config.units` | *Opcional* — Unitats de distància i elevació. | `"metric"` = km/m, `"imperial"` = milles/peus |
+| `updateInterval` | `10000` (10 segons) | *Opcional* — Interval entre rotacions de període (mil·lisegons). | `1000` - `86400000` |
+| `reloadInterval` | `300000` (5 minuts) | *Opcional* — Interval de recàrrega de dades de l'API (mil·lisegons). | `7500` - `86400000` |
+| `animationSpeed` | `2500` | *Opcional* — Velocitat de l'animació de transició (mil·lisegons). | `0` - `5000` |
+| `locale` | `config.language` | *Opcional* — Idioma per a les etiquetes de dates al gràfic. | `"ca"`, `"es"`, `"en"`, `"fr"`, etc. |
+| `digits` | `1` | *Opcional* — Decimals per a les estadístiques de distància i elevació. | `0`, `1`, `2`... |
+| `firstYear` | *Cinc anys abans de l'any actual* | *Opcional* — Primer any a mostrar en mode `chart` amb `period: "all"`. | Any en format numèric |
+| `debug` | `false` | *Opcional* — Activa el registre extès a la consola. | `true`, `false` |
 
-   ```bash
-   cd ~/MagicMirror/modules/MMM-Strava
-   git pull
-   npm install --production
-   ```
+---
 
-2. Update your config file to remove the `strava_id` and `access_token` options and add the new `client_id` and `client_secret` options - _See steps 2 and 4 in the [installation notes](#installation)_.
+## Fitxers modificats
 
-**Please Note** Following the changes to Strava’s [authentication model](https://developers.strava.com/docs/authentication/), the client_id and client_secret must be included in the config in place of the deprecated strava_id and access_token options.
+| Fitxer | Canvis |
+| --- | --- |
+| `MMM-Strava.js` | Nou filtre `getBarHighlightClass` per als colors dinàmics. Actualització de `getIntervalClass`, `getLabel` i `getBarHighlightClass` per al mode rotatori de 12 mesos en `ytd`. |
+| `node_helper.js` | Canvi de la finestra temporal del mode `ytd` (últims 12 mesos). Nova lògica d'assignació d'activitats als intervals basada en diferència de mesos. |
+| `MMM-Strava.css` | Noves regles CSS per als colors `bar-best` (verd fosc) i `bar-worst` (vermell) amb especificitat suficient per sobreescriure els estils originals. |
+| `templates/MMM-Strava.chart.njk` | Aplicació del filtre `getBarHighlightClass` a cada barra del gràfic SVG. |
 
-If you haven't changed the module, this should work without any problems. If you have a problem, you can reset the module using `git reset --hard`, after which `git pull` should be possible. You may wish to use `git status` to see any changes before doing so.
+---
 
-## Configuration options
+## Crèdits
 
-The following properties can be added to the configuration:
+- Mòdul original: [ianperrin/MMM-Strava](https://github.com/ianperrin/MMM-Strava)
+- Millores: colors dinàmics i gràfic rotatori dels últims 12 mesos.
 
-| **Option**                                                  | **Default**                                                                                                                 | **Description**                                                                                                                                                                                                                                                                    | **Possible Values**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `client_id`                                                 |                                                                                                                             | _Required_ - The Client ID for your Strava API Application, obtained from [your My API Application page](https://www.strava.com/settings/api).                                                                                                                                     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `client_secret`                                             |                                                                                                                             | _Required_ - The Client Secret for your Strava API Application, obtained from [your My API Application page](https://www.strava.com/settings/api).                                                                                                                                 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `mode`                                                      | `table`                                                                                                                     | _Optional_ - Determines which mode should be used to display activity information.                                                                                                                                                                                                 | `"table"`, `"chart"`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `chartType` ![Beta](https://img.shields.io/badge/-BETA-red) | `bar`                                                                                                                       | _Optional_ - Determines the type of chert which should be displayed in `chart`.                                                                                                                                                                                                    | `"bar"`, `"radial"`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `activities`                                                | `["ride", "run", "swim"]`                                                                                                   | _Optional_ - Determines which activities to display and in which order they are displayed. _Note:_ - The activities can be listed in any order, and only one is required. However, they must be entered as an array of strings i.e. comma separated values within square brackets. | In `table` mode: `"ride"`, `"run"`, `"swim"` <br /> In `chart` mode: `"alpineski"`, `"backcountryski"`, `"canoeing"`, `"crossfit"`, `"ebikeride"`, `"elliptical"`, `"golf"`, `"handcycle"`, `"hike"`, `"iceskate"`, `"inlineskate"`, `"kayaking"`, `"kitesurf"`, `"nordicski"`, `"ride"`, `"rockclimbing"`, `"rollerski"`, `"rowing"`, `"run"`, `"sail"`, `"skateboard"`, `"snowboard"`, `"snowshoe"`, `"soccer"`, `"stairstepper"`, `"standuppaddling"`, `"surfing"`, `"swim"`, `"velomobile"`, `"virtualride"`, `"virtualrun"`, `"walk"`, `"weighttraining"`, `"wheelchair"`, `"windsurf"`, `"workout"`, `"yoga"` |
-| `period`                                                    | `recent`                                                                                                                    | _Optional_ - What period should be used to summarise the activities in `table` and `chart` mode.                                                                                                                                                                                   | `recent` = last 4 weeks in `table` mode or current week in `chart` mode, `ytd` = year to date, `all` = all time                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `stats`                                                     | In `table` mode: `["count", "distance", "achievements"]` <br /> In `chart` mode: `["distance", "moving_time", "elevation"]` | _Optional_ - Determines which statistics to display. <br /> _Note:_ - The stats can be listed in any order, and only one is required. However, they must be entered as an array of strings i.e. comma separated values within square brackets.                                     | `"count"`, `"distance"`, `"elevation"`, `"moving_time"`, `"elapsed_time"`, `"achievements"`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `auto_rotate`                                               | `false`                                                                                                                     | _Optional_ - Whether the summary of activities should rotate through the different periods in `table` mode.                                                                                                                                                                        | `true` = rotates the summary through the different periods, `false` = displays the specified period only.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `units`                                                     | `config.units`                                                                                                              | _Optional_ - What units to use. Specified by config.js                                                                                                                                                                                                                             | `config.units` = Specified by config.js, `metric` = Kilometres/Metres, `imperial` = Miles/Feet                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `updateInterval`                                            | `10000` (10 seconds)                                                                                                        | _Optional_ - How often does the period have to change? (Milliseconds).                                                                                                                                                                                                             | `1000` - `86400000`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `reloadInterval`                                            | `300000` (5 minutes)                                                                                                        | _Optional_ - How often does the data needs to be reloaded from the API? (Milliseconds). See [Strava documentation](http://strava.github.io/api/#rate-limiting) for API rate limits                                                                                                 | `7500` - `86400000`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `animationSpeed`                                            | `2500`                                                                                                                      | _Optional_ - The speed of the update animation. (Milliseconds)                                                                                                                                                                                                                     | `0` - `5000`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `locale`                                                    | `config.language`                                                                                                           | _Optional_ - The locale to be used for displaying dates - e.g. the days of the week or months or the year in chart mode. If omitted, the config.language will be used.                                                                                                             | e.g. `en`, `en-gb`, `fr` etc                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `debug`                                                     | `false`                                                                                                                     | _Optional_ - Outputs extended logging to the console/log                                                                                                                                                                                                                           | `true` = enables extended logging, `false` = disables extended logging                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `digits`                                                    | `1`                                                                                                                         | _Optional_ - Digits for total distance and elevation gain statistics                                                                                                                                                                                                               | `0` - ...                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `firstYear`                                                 | _Five years before the current date._                                                                                       | _Optional_ - The first year activities should be grouped by in `chart` mode when the `period` is "all".                                                                                                                                                                            | `0` - ...                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+## Llicència
+
+MIT
